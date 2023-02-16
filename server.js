@@ -58,3 +58,10 @@ app.use('/collection/:collectionName', (req, res, next) => {
         else next();
     });
 });
+
+// If it is not a GET request, also servers a 404 error.
+app.use(function(request, response) {response.status(404).send("Page not found!");});
+
+app.listen(3000, () => {
+    console.log('Express.js server running at localhost:3000')
+})
