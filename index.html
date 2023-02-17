@@ -7,6 +7,10 @@
     <title>Subject Spaces</title>
     <!-- Website Icon -->
     <link rel="icon" type="image/x-icon" href="static/images/icon.png">
+        <!-- Stylesheet -->
+        <link rel="stylesheet" href="styles.css">
+        <!-- Reference for the Font Awesome -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
     <!-- Reference for the Vue.js -->
     <script src="https://cdn.jsdelivr.net/npm/vue@2.7.10/dist/vue.js"></script>
 </head>
@@ -31,7 +35,24 @@
                             <p v-text=' "Location: " +  lesson.location'>  </p>
                             <p v-text=' "Price: £"   +  lesson.price'>     </p>
                             <p v-text=' "Spaces: "   +  lesson.spaces'>    </p>
-                        </b></i>               
+                        </b></i>    
+                        
+                        <!-- Add To Cart -->
+                        <button v-on:click='addToCart(lesson)' v-if='canAddToCart(lesson)'>
+                            <span class="fas fa-cart-plus"></span> Add to cart
+                        </button>
+
+                        <button disabled="disabled" v-else>
+                            <span class="fas fa-cart-plus"></span> Add to cart
+                        </button>  
+
+                        <!-- Limited Stock -->
+                        <span v-if='lesson.spaces === cartCount(lesson.id)'>All out!</span>
+                        <span v-else-if="lesson.spaces - cartCount(lesson.id) <= 3">
+                            Only {{lesson.spaces - cartCount(lesson.id)}} left!
+                        </span>
+                        <span v-else>Buy now!</span>
+                    </div>
                 </div>
             
     <!-- Script for Vue.js -->
@@ -45,7 +66,7 @@
                 cart: [],
             },
             methods: {
-                
+    
                 // Adding to the Cart
                 addToCart(lesson) {
                     // Push the lesson to Cart
@@ -57,7 +78,19 @@
                 canAddToCart(lesson) {
                     return lesson.spaces > this.cartCount(lesson.id);
                 },
+
+                // Takes the chosen lesson's id and adds it to cart 
+                cartCount(id) {
+                    let count = 0;
+                    for (let i = 0; i < this.cart.length; i++) {
+                        if (this.cart[i] === id) {
+                            count++;
+                        }
+                    }
+                    return count;
+                },
             },
+
             //created () hook allows code to be run
             created: function(){
                 fetch("http://localhost:3000/collection/lessons").then(
@@ -70,6 +103,14 @@
                     }
                 )
             },
+            
+            // Computed properties used to calculate and display values based on a value or set of values in the data model.
+            computed: {
+                // Counts the moudules that have have been carted to
+                cartObjectCount: function() {
+                    return this.cart.length || '0';
+                },
+            }
         })
     </script>
             
