@@ -16,6 +16,18 @@ app.use((req,res,next)=>{
     next();
 })
 
+// logger middleware which outputs all requests to the server
+let logger = (req,res,next) => {
+    let method = req.method;
+    let url = req.url;
+    let status = res.statusCode;
+    let log = `${method}:${url} ${status}`;
+    console.log(log);
+    next();
+  };
+  
+app.use(logger);
+
 //Connect to the MongoDB
 let db;
 MongoClient.connect('mongodb+srv://naadir:naadir123@cluster0.guegops.mongodb.net', (err, client) => {    
