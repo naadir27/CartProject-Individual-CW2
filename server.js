@@ -59,6 +59,15 @@ app.use('/collection/:collectionName', (req, res, next) => {
     });
 });
 
+// Add the Items to Orders Collection
+app.post('/collection/:collectionName', (req, res, next) => {  
+    req.collection.insertOne(req.body, (e, results) =>
+    {
+        if (e) return next(e)    
+        res.send(results.ops)
+    })
+})
+
 // If it is not a GET request, also servers a 404 error.
 app.use(function(request, response) {response.status(404).send("Page not found!");});
 
