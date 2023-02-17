@@ -20,10 +20,29 @@
             <h1 v-text="sitename"></h1>
         </header>
 
+        <nav>
+            <div class="wrap">
+               <p>
+                   <input type="radio" id="ascending" value="ascending" v-model="orderby" >
+                   <label for="ascending">Ascending</label>
+                   <input type="radio" id="descending" value="descending" v-model="orderby">
+                   <label for="descending">Descending</label>
+                   <input type="radio" id="subject" value="subject" v-model="sort" >
+                   <label for="subject">Subject</label>
+                   <input type="radio" id="location" value="location" v-model="sort" >
+                   <label for="location">Location</label>
+                   <input type="radio" id="price" value="price" v-model="sort" >
+                   <label for="price">Price</label>
+                   <input type="radio" id="spaces" value="spaces" v-model="sort"> 
+                   <label for="spaces">Spaces</label>
+               </p>            
+            </div>
+        </nav>
+
         <!-- Subjects Page -->
         <main>
                 <div class="container">
-                    <div class="lesson" v-for="lesson in lessons">
+                    <div class="lesson" v-for="lesson in sortedLessons">
                         <!-- Image -->
                         <figure>
                             <!-- bind the 'src' attribute to the 'product.image' in 'data' -->
@@ -64,6 +83,8 @@
                 sitename:'SUBJECT SPACES',
                 lessons:[],
                 cart: [],
+                sort: 'subject', //Default value 'Subject'
+                orderby: 'ascending', //Default value 'Ascending'
             },
             methods: {
     
@@ -110,10 +131,44 @@
                 cartObjectCount: function() {
                     return this.cart.length || '0';
                 },
-            }
-        })
-    </script>
-            
 
+                sortedLessons() {
+
+                    //Sort Function
+                    let lessonsArray = this.lessons.slice(0);
+                    if (this.sort === 'subject') {
+                        if (this.orderby === 'ascending') 
+                            { return lessonsArray.sort((a, b) => (a.subject > b.subject) ? 1 : -1);} 
+                        else 
+                            { return lessonsArray.sort((a, b) => (a.subject < b.subject) ? 1 : -1);}
+                    }
+
+                    // Sorting Location
+                    if (this.sort === 'location') {
+                        if (this.orderby === 'ascending') 
+                            { return lessonsArray.sort((a, b) => (a.location > b.location) ? 1 : -1);}
+                        else 
+                            { return lessonsArray.sort((a, b) => (a.location < b.location) ? 1 : -1);}
+                    }
+
+                    // Sorting Price
+                    if (this.sort === 'price') {
+                        if (this.orderby === 'ascending')
+                            { return lessonsArray.sort((a, b) => { return a.price - b.price; });}
+                        else 
+                            { return lessonsArray.sort((a, b) => { return b.price - a.price; });}
+                    }
+
+                    // Sorting Spaces
+                    if (this.sort === 'spaces') {
+                        if (this.orderby === 'ascending')
+                            { return lessonsArray.sort((a, b) => { return a.spaces - b.spaces; });}    
+                        else 
+                            { return lessonsArray.sort((a, b) => { return b.spaces - a.spaces; });}
+                    }
+                }
+            }
+        });
+    </script>
 </html>
 
