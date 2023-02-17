@@ -54,30 +54,44 @@ app.get('/collection/:collectionName',(req,res,next)=>{
     console.log("Getting the Data from Lesson Collection")
 })
 
-//Retrive Images
-app.use('/collection/:collectionName', (req, res, next) => {
-    var filePath = path.join(__dirname, "static/images" , req.url);
-    fs.stat(filePath, function(err, fileInfo){
-        if(err){
-            res.status(404);
-            res.send("Image file not found!");
-            return;
-        }
-        if(fileInfo.isFile()){
-            res.sendFile(filePath);
-            console.log("GET/" + req.url)
-        }
-        else next();
-    });
-});
-
 // Add the Items to Orders Collection
 app.post('/collection/:collectionName', (req, res, next) => {  
     req.collection.insertOne(req.body, (e, results) =>
     {
         if (e) return next(e)    
+        res.send(results ? {msg:'success'} : {msg:'error'})
         res.send(results.ops)
     })
+})
+
+//Return with objectID
+const Objectid = require('mongodb').ObjectID;
+app.get('/collection/:collectionName/:id' , (req, res, next) => {
+    req.collection.findOne({_id: new ObjectID(req.params.id)} , (e,results) => {
+        if (e) return next(e)
+        res.send(results)
+    })
+})
+
+//Update
+app.put('/collection/:collectionName/:id', (req,res,next) => {
+    req.collection.updateOne(
+        {_id: new ObjectID(req.params.id)},
+        {$set: req.body},
+        {safe:true, multi:false}, (e,results) => {
+            if (e) return next(e)
+            res.send((results = 1) ? {msg:'success'} : {msg:'error'})
+        })
+})
+
+//Delete
+app.delete('/collection/:collectionName/:id', (req,res,next) => {
+    req.collection.deleteOne(
+        {_id: ObjectID(req.params.id)},
+        (e,results) => {
+            if (e) return next(e)
+            res.send(results ? {msg:'success'} : {msg:'error'})
+        })
 })
 
 // If it is not a GET request, also servers a 404 error.
