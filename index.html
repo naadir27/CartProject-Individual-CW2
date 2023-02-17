@@ -39,8 +39,19 @@
             </div>
         </nav>
 
+        <!-- Checkout -->
+        <button v-on:click="showCheckout" v-if="cartObjectCount > 0"> {{ cartObjectCount }}
+            <span class="fa-solid fa-bag-shopping"></span>
+            Checkout
+        </button>
+        <button disabled="disabled" v-else> {{ cartObjectCount }}
+            <span class="fa-solid fa-bag-shopping"></span>
+            Checkout
+        </button><br>
+
         <!-- Subjects Page -->
         <main>
+            <div v-if="showLesson">
                 <div class="container">
                     <div class="lesson" v-for="lesson in sortedLessons">
                         <!-- Image -->
@@ -73,6 +84,45 @@
                         <span v-else>Buy now!</span>
                     </div>
                 </div>
+            </div>
+
+            <!-- Checkout Page -->
+            <div v-else>
+                <div class="container">
+                    <!-- Added to Cart -->
+                    <div v-for="lesson in cart">   
+                        <!-- Image -->
+                        <figure>
+                            <!-- bind the 'src' attribute to the 'lesson.image' in 'data' -->
+                            <img v-bind:src="lesson.image" width=200 height=200>
+                        </figure> 
+
+                        <!-- Details -->
+                        <b><i>
+                            <p v-text=' "Subject: "  +  lesson.subject'>   </p>
+                            <p v-text=' "Location: " +  lesson.location'>  </p>
+                            <p v-text=' "Price: £"   +  lesson.price'>     </p>
+                        </b></i>
+
+                        <button v-on:click="remove(lesson)">Delete</button>
+                    </div>
+                </div>
+
+                <!-- Details -->
+                <h2>Checkout</h2>
+                <p>
+                    <b>Name:</b> <input type="text" v-model.trim="order.name"/>
+                </p>
+                <p> 
+                    <b>Phone Number:</b> <input type="text" v-model="order.phoneNumber"/>
+                </p>
+
+                <!-- Submit Form -->
+                <button v-on:click="submitForm" v-if="/^(?!\s*$)[a-zA-Z.+\s'-]+$/.test(this.order.name) && /^(?!\s*$)[0-9.+\s'-]+$/.test(this.order.phoneNumber) && this.order.phoneNumber.length === 10" >
+                    Place Order</button>
+                <button v-on:click="submitForm" disabled v-else>Place Order</button>
+            </div>
+        </main>
             
     <!-- Script for Vue.js -->
     <script>
@@ -80,11 +130,16 @@
         let app = new Vue ({
             el: '#app',
             data:{
+                showLesson: true,
                 sitename:'SUBJECT SPACES',
                 lessons:[],
                 cart: [],
                 sort: 'subject', //Default value 'Subject'
                 orderby: 'ascending', //Default value 'Ascending'
+                order: {  //Default empty values in the textField
+                    name: '',
+                    phoneNumber: ''
+                },
             },
             methods: {
     
@@ -110,6 +165,16 @@
                     }
                     return count;
                 },
+                
+                // Checks whether the user is trying to display the Checkout Page or not
+                showCheckout() { 
+                    this.showLesson = this.showLesson ? false : true;
+                },    
+
+                // Display the Order Confirmation
+                submitForm() {
+                    alert('Order submitted!');
+                }
             },
 
             //created () hook allows code to be run
