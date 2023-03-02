@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>   
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -7,21 +7,27 @@
     <title>Subject Spaces</title>
     <!-- Website Icon -->
     <link rel="icon" type="image/x-icon" href="static/images/icon.png">
-        <!-- Stylesheet -->
-        <link rel="stylesheet" href="styles.css">
-        <!-- Reference for the Font Awesome -->
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="styles.css">
+    <!-- Reference for the Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
     <!-- Reference for the Vue.js -->
     <script src="https://cdn.jsdelivr.net/npm/vue@2.7.10/dist/vue.js"></script>
 </head>
 
+    <!-- Elements where Vue.js will mount the application --> 
     <div id="app">
         <header>
             <h1 v-text="sitename"></h1>
         </header>
 
+        <!-- Search Bar -->
         <nav>
             <div class="wrap">
+                <div class="search">
+                    <input id="search" type="search" v-model="search" placeholder="Search" @input="searchLessons"/>
+                </div>
+               <!-- Sort Radio Buttons  -->
                <p>
                    <input type="radio" id="ascending" value="ascending" v-model="orderby" >
                    <label for="ascending">Ascending</label>
@@ -35,7 +41,8 @@
                    <label for="price">Price</label>
                    <input type="radio" id="spaces" value="spaces" v-model="sort"> 
                    <label for="spaces">Spaces</label>
-               </p>            
+               </p>
+            
             </div>
         </nav>
 
@@ -52,8 +59,9 @@
         <!-- Subjects Page -->
         <main>
             <div v-if="showLesson">
+                <div v-if="searchResults.length > 0">
                 <div class="container">
-                    <div class="lesson" v-for="lesson in sortedLessons">
+                    <div class="lesson" v-for="lesson in searchResults">
                         <!-- Image -->
                         <figure>
                             <!-- bind the 'src' attribute to the 'product.image' in 'data' -->
@@ -65,8 +73,8 @@
                             <p v-text=' "Location: " +  lesson.location'>  </p>
                             <p v-text=' "Price: £"   +  lesson.price'>     </p>
                             <p v-text=' "Spaces: "   +  lesson.spaces'>    </p>
-                        </b></i>    
-                        
+                        </b></i>               
+
                         <!-- Add To Cart -->
                         <button v-on:click='addToCart(lesson)' v-if='canAddToCart(lesson)'>
                             <span class="fas fa-cart-plus"></span> Add to cart
@@ -82,8 +90,43 @@
                             Only {{lesson.spaces - cartCount(lesson.id)}} left!
                         </span>
                         <span v-else>Buy now!</span>
-                    </div>
+                    </div>    
                 </div>
+                </div>
+                    <div v-else>
+                        <div class="container">
+                        <div class="lesson" v-for="lesson in sortedLessons">
+                            <!-- Image -->
+                            <figure>
+                                <!-- bind the 'src' attribute to the 'product.image' in 'data' -->
+                                <img v-bind:src="lesson.image" width=200 height=200>
+                            </figure> 
+    
+                            <b><i>
+                                <p v-text=' "Subject: "  +  lesson.subject'>   </p>
+                                <p v-text=' "Location: " +  lesson.location'>  </p>
+                                <p v-text=' "Price: £"   +  lesson.price'>     </p>
+                                <p v-text=' "Spaces: "   +  lesson.spaces'>    </p>
+                            </b></i>               
+    
+                            <!-- Add To Cart -->
+                            <button v-on:click='addToCart(lesson)' v-if='canAddToCart(lesson)'>
+                                <span class="fas fa-cart-plus"></span> Add to cart
+                            </button>
+    
+                            <button disabled="disabled" v-else>
+                                <span class="fas fa-cart-plus"></span> Add to cart
+                            </button>  
+    
+                            <!-- Limited Stock -->
+                            <span v-if='lesson.spaces === cartCount(lesson.id)'>All out!</span>
+                            <span v-else-if="lesson.spaces - cartCount(lesson.id) <= 3">
+                                Only {{lesson.spaces - cartCount(lesson.id)}} left!
+                            </span>
+                            <span v-else>Buy now!</span>
+                        </div>
+                    </div>
+                    </div>
             </div>
 
             <!-- Checkout Page -->
@@ -107,7 +150,7 @@
                         <button v-on:click="remove(lesson)">Delete</button>
                     </div>
                 </div>
-
+                
                 <!-- Details -->
                 <h2>Checkout</h2>
                 <p>
@@ -125,6 +168,7 @@
         </main>
     </div>
 
+            
     <!-- Script for Vue.js -->
     <script>
         //Instances of Vue.js
@@ -135,15 +179,36 @@
                 sitename:'SUBJECT SPACES',
                 lessons:[],
                 cart: [],
-                sort: 'subject', //Default value 'Subject'
-                orderby: 'ascending', //Default value 'Ascending'
+                sort: "subject", //Default value 'Subject'
+                orderby: "ascending", //Default value 'Ascending'
+                search: "",
+                searchResults:[],
                 order: {  //Default empty values in the textField
-                    name: '',
-                    phoneNumber: ''
+                    name: "",
+                    phoneNumber: ""
                 },
+            },  
+            //created () hook allows code to be run
+            created: function(){
+                fetch("http://localhost:3000/collection/lessons").then(
+                    function(response){
+                        response.json().then(
+                            function(json){
+                                app.lessons=json;
+                            }
+                        )
+                    }
+                )
             },
             methods: {
-    
+                // Searches the particular lesson
+                searchLessons() {
+                    fetch('http://localhost:3000/collection/lessons/' + this.search).then
+                        (response => response.json()).then(data => { 
+                            this.searchResults = data; 
+                        });
+                },
+
                 // Adding to the Cart
                 addToCart(lesson) {
                     // Push the lesson to Cart
@@ -165,8 +230,8 @@
                         }
                     }
                     return count;
-                },
-                
+                }, 
+
                 // Checks whether the user is trying to display the Checkout Page or not
                 showCheckout() { 
                     this.showLesson = this.showLesson ? false : true;
@@ -174,16 +239,12 @@
 
                 // Display the Order Confirmation
                 submitForm() {
-
+                    
                     const lessonOrders = {
                         name: this.order.name,
                         phoneNumber: this.order.phoneNumber,
                         lessons: this.cart,
                     };
-
-                    console.log(lessonOrders);
-
-                    alert('Order submitted!');
 
                     fetch("http://localhost:3000/collection/orders", {
                         method: "POST",
@@ -191,14 +252,26 @@
                             "Content-Type": "application/json",
                         },
                         body: JSON.stringify(lessonOrders),
-                    }).then((response) => {
-                        console.log(response);
-                        return response.text();
-                    }).catch((error) => {
-                        console.error("Error:", error);
+                    }).then((response) => { console.log(response);
+                                            return response.text();
+                    }).catch((error) => { console.error("Error:", error);
                     });
+
+                    // Fetch 'PUT' request to update the spaces of a lesson.
+                    fetch('http://localhost:3000/collection/lessons', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(this.cart),
+                    });
+                
+                    alert('Order submitted!');
                     
-                    // alert('Order submitted!');
+                    // resets the name, phone number, and the cart
+                    this.order.name = '';
+                    this.order.phoneNumber = null;
+                    this.cart = [];
                 },
 
                 remove(lesson){   
@@ -206,26 +279,15 @@
                     this.cart.splice(this.cart.indexOf(lesson),1);
 
                     if(this.cart.length === 0){
-                        // set showLesson to true, this will display lesson div if all items are removed
+                        /* set showLesson to true, this will display lesson 
+                        div if all items are removed */
                         this.showLesson = true
                     }
                 },
-            },
-
-            //created () hook allows code to be run
-            created: function(){
-                fetch("http://localhost:3000/collection/lessons").then(
-                    function(response){
-                        response.json().then(
-                            function(json){
-                                app.lessons=json;
-                            }
-                        )
-                    }
-                )
-            },
+            },  
             
-            // Computed properties used to calculate and display values based on a value or set of values in the data model.
+            /*  Computed properties used to calculate and display values 
+                based on a value or set of values in the data model. */
             computed: {
                 // Counts the moudules that have have been carted to
                 cartObjectCount: function() {
@@ -266,11 +328,10 @@
                         else 
                             { return lessonsArray.sort((a, b) => { return b.spaces - a.spaces; });}
                     }
-                }
+                },
             }
         });
     </script>
 
 </body>
 </html>
-
